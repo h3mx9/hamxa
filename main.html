@@ -1139,29 +1139,41 @@ function getTimeAgo(date) {
             ? new Date(employee.start_time).toLocaleTimeString() 
             : 'N/A';
         
-        // Truncate notes for table view (using task_notes from employee_status)
-        const shortDescription = employee.task_notes  // CHANGED: from task_description to task_notes
+        const shortDescription = employee.task_notes
             ? (employee.task_notes.length > 50 
                 ? employee.task_notes.substring(0, 50) + '...' 
                 : employee.task_notes)
             : '-';
         
-        // View description button (only if there's notes)
-        const viewDescBtn = employee.task_notes  // CHANGED: from task_description to task_notes
+        const viewDescBtn = employee.task_notes
             ? `<button class="btn btn-sm btn-outline-info view-desc-btn" 
                data-task-id="${employee.task_id}" 
                data-task-title="${employee.task_title || ''}" 
-               data-task-desc="${employee.task_notes || ''}"  // CHANGED
-               data-project="${employee.project_name || ''}">
+               data-task-desc="${employee.task_notes || ''}"
+               data-project="${employee.project_name || ''}"
+               title="View Notes">
                    <i class="bi bi-eye"></i>
                </button>`
-            : '-';
+            : '';
         
-        // Assign task button (always shown for admin)
+        // Check conditions for delete button
+        const isCurrentUser = currentUser && employee.id === currentUser.id;
+
+// Sabhi employees ke liye delete button (except self)
+const deleteBtn = !isCurrentUser ? 
+    `<button class="btn btn-sm btn-danger delete-employee-btn" 
+        data-employee-id="${employee.id}" 
+        data-employee-name="${employee.name}"
+        data-employee-email="${employee.email}"
+        title="Delete Employee">
+        <i class="bi bi-trash"></i>
+    </button>` : '';
+        
         const assignBtn = `<button class="btn btn-sm btn-primary assign-task-btn" 
                           data-employee-id="${employee.id}" 
-                          data-employee-name="${employee.name}">
-                              <i class="bi bi-plus-circle"></i> Assign
+                          data-employee-name="${employee.name}"
+                          title="Assign Task">
+                              <i class="bi bi-plus-circle"></i>
                           </button>`;
         
         const row = document.createElement('tr');
@@ -1170,18 +1182,53 @@ function getTimeAgo(date) {
             <td>${statusBadge}</td>
             <td>${employee.department}</td>
             <td>${employee.task_title || '-'}</td>
-            <td>${shortDescription}</td>  <!-- Now shows notes from employee_status -->
+            <td>${shortDescription}</td>
             <td>${lastActivity}</td>
             <td>
-                <div class="btn-group" role="group">
-                    ${viewDescBtn !== '-' ? viewDescBtn : '<span>-</span>'}
+                <div class="btn-group btn-group-sm" role="group">
+                    ${viewDescBtn}
                     ${assignBtn}
+                    ${deleteBtn}
                 </div>
             </td>
         `;
         
         employeeTableBody.appendChild(row);
     });
+    
+    // Add event listeners
+    setTimeout(() => {
+        // Existing view description buttons...
+        
+        // Existing assign task buttons...
+        
+        // NEW: Delete button handlers
+        document.querySelectorAll('.delete-employee-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const employeeId = this.getAttribute('data-employee-id');
+                const employeeName = this.getAttribute('data-employee-name');
+                
+                if (!confirm(`Delete "${employeeName}"? This cannot be undone.`)) {
+                    return;
+                }
+                
+                try {
+                    await apiRequest(`/employees/${employeeId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    alert(`Employee "${employeeName}" deleted!`);
+                    
+                    // Refresh table
+                    const employees = await apiRequest('/employees');
+                    renderEmployeeTable(employees);
+                    
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            });
+        });
+    }, 100);
     
     // Add event listeners after the table is populated
     setTimeout(() => {
