@@ -17,11 +17,13 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // MySQL Database Connection
+// MySQL Database Connection - Railway compatible
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root', // Change as per your MySQL setup
-    password: 'AliHamzA@@@@@@1', // Change as per your MySQL setup
-    database: 'employee'
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'employee',
+    port: process.env.DB_PORT || 3306
 });
 
 // Connect to MySQL
