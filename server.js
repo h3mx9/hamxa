@@ -39,8 +39,6 @@ db.connect((err) => {
     }
 });
 
-// Start connection
-connectToDatabase();
 
 // Serve main.html at root
 app.get('/', (req, res) => {
