@@ -659,7 +659,44 @@ app.post('/api/tasks/assign', authenticateToken, (req, res) => {
         );
     });
 });
-
+// Add new employee (admin only) - ADD THIS CODE
+app.post('/api/employees', authenticateToken, async (req, res) => {
+    if (!req.user.is_admin) {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
+    
+    const { name, email, password, position, department, is_admin } = req.body;
+    
+    if (!name || !email || !password) {
+        return res.status(400).json({ error: 'Name, email and password are required' });
+    }
+    
+    try {
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // Insert into database
+        db.query(
+            'INSERT INTO employees (name, email, password, position, department, is_admin) VALUES (?, ?, ?, ?, ?, ?)',
+            [name, email, hashedPassword, position || '', department || '', is_admin || 0],
+            (err, result) => {
+                if (err) {
+                    if (err.code === 'ER_DUP_ENTRY') {
+                        return res.status(400).json({ error: 'Email already exists' });
+                    }
+                    return res.status(500).json({ error: 'Database error' });
+                }
+                
+                res.json({ 
+                    message: 'Employee added successfully',
+                    employeeId: result.insertId 
+                });
+            }
+        );
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 // Get notifications for current employee
 app.get('/api/notifications', authenticateToken, (req, res) => {
     const employeeId = req.user.id;
