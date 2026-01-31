@@ -179,95 +179,48 @@ function initializeDatabase() {
     });
     
     // Add some sample data for testing
-    addSampleData();
+    
 }
 
 // Function to add sample data
-function addSampleData() {
-    // Check if admin user exists
-    db.query('SELECT * FROM employees WHERE email = "admin@office.com"', (err, results) => {
-        if (err) {
-            console.error('Error checking admin user:', err);
-            return;
-        }
-        
-        if (results.length === 0) {
-            // Create admin user (password: admin123)
-            const hashedPassword = bcrypt.hashSync('admin123', 10);
-            db.query(
-                'INSERT INTO employees (name, email, password, position, department, is_admin) VALUES (?, ?, ?, ?, ?, ?)',
-                ['Admin User', 'admin@office.com', hashedPassword, 'Administrator', 'Management', 1],
-                (err) => {
-                    if (err) {
-                        console.error('Error creating admin user:', err);
-                    } else {
-                        console.log('Admin user created');
-                    }
-                }
-            );
-            
-            // Create a sample employee
-            const employeePassword = bcrypt.hashSync('employee123', 10);
-            db.query(
-                'INSERT INTO employees (name, email, password, position, department) VALUES (?, ?, ?, ?, ?)',
-                ['John Doe', 'john@office.com', employeePassword, 'Developer', 'IT'],
-                (err) => {
-                    if (err) {
-                        console.error('Error creating sample employee:', err);
-                    } else {
-                        console.log('Sample employee created');
-                    }
-                }
-            );
-        }
-    });
+// Delete employee (admin only) - ADD THIS
+app.delete('/api/employees/:id', authenticateToken, (req, res) => {
+    if (!req.user.is_admin) {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
     
-    // Check if sample project exists
-    db.query('SELECT * FROM projects WHERE name = "Website Redesign"', (err, results) => {
-        if (err) {
-            console.error('Error checking sample project:', err);
-            return;
+    const employeeId = req.params.id;
+    
+    // Don't allow deleting yourself
+    if (parseInt(employeeId) === req.user.id) {
+        return res.status(400).json({ error: 'Cannot delete your own account' });
+    }
+    
+    // First delete related records (due to foreign keys)
+    const deleteQueries = [
+        'DELETE FROM activity_log WHERE employee_id = ?',
+        'DELETE FROM notifications WHERE employee_id = ?',
+        'DELETE FROM employee_status WHERE employee_id = ?',
+        'DELETE FROM employees WHERE id = ?'
+    ];
+    
+    // Execute all delete queries
+    const executeQuery = (index) => {
+        if (index >= deleteQueries.length) {
+            return res.json({ message: 'Employee deleted successfully' });
         }
         
-        if (results.length === 0) {
-            // Create sample project
-            db.query(
-                'INSERT INTO projects (name, description) VALUES (?, ?)',
-                ['Website Redesign', 'Redesign company website with modern UI/UX'],
-                (err, result) => {
-                    if (err) {
-                        console.error('Error creating sample project:', err);
-                        return;
-                    }
-                    
-                    const projectId = result.insertId;
-                    
-                    // Create sample tasks
-                    const sampleTasks = [
-                        ['Homepage Design', 'Design new homepage layout', projectId],
-                        ['Contact Form', 'Update contact form with validation', projectId],
-                        ['Mobile Responsive', 'Make website mobile responsive', projectId]
-                    ];
-                    
-                    sampleTasks.forEach(task => {
-                        db.query(
-                            'INSERT INTO tasks (title, description, project_id) VALUES (?, ?, ?)',
-                            task,
-                            (err) => {
-                                if (err) {
-                                    console.error('Error creating sample task:', err);
-                                }
-                            }
-                        );
-                    });
-                    
-                    console.log('Sample project and tasks created');
-                }
-            );
-        }
-    });
-}
-
+        db.query(deleteQueries[index], [employeeId], (err) => {
+            if (err) {
+                console.error('Delete error:', err);
+                return res.status(500).json({ error: 'Database error' });
+            }
+            executeQuery(index + 1);
+        });
+    };
+    
+    executeQuery(0);
+});
 // Routes
 // Employee login
 app.post('/api/login', (req, res) => {
