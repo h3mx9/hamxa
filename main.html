@@ -533,7 +533,51 @@
         </div>
     </div>
 </div>
-
+<!-- Add Employee Form (Admin Only) -->
+<div class="card shadow mb-4" id="add-employee-form" style="display: none;">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Add New Employee</h6>
+    </div>
+    <div class="card-body">
+        <form id="add-employee-form-content">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="new-name" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" id="new-name" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="new-email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="new-email" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="new-password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="new-password" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="new-position" class="form-label">Position</label>
+                    <input type="text" class="form-control" id="new-position">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="new-department" class="form-label">Department</label>
+                    <input type="text" class="form-control" id="new-department">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="new-is-admin" class="form-label">Role</label>
+                    <select class="form-select" id="new-is-admin">
+                        <option value="0">Employee</option>
+                        <option value="1">Admin</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Employee</button>
+            <button type="button" class="btn btn-secondary" id="cancel-add">Cancel</button>
+        </form>
+    </div>
+</div>
 <!-- Task Description Modal -->
 <div class="modal fade" id="taskDescriptionModal" tabindex="-1" aria-labelledby="taskDescriptionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -1201,7 +1245,62 @@ function populateAssignTaskDropdown(tasks) {
         assignTaskSelect.appendChild(option);
     });
 }
-
+// Add Employee Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const addEmployeeBtn = document.createElement('button');
+    addEmployeeBtn.className = 'btn btn-primary btn-sm';
+    addEmployeeBtn.innerHTML = '<i class="bi bi-person-plus"></i> Add Employee';
+    addEmployeeBtn.id = 'show-add-employee-form';
+    
+    // Add button to admin dashboard
+    const pageHeading = document.querySelector('.d-sm-flex.align-items-center.justify-content-between.mb-4');
+    if (pageHeading && currentUser && currentUser.is_admin) {
+        pageHeading.appendChild(addEmployeeBtn);
+        
+        // Show/hide form
+        addEmployeeBtn.addEventListener('click', function() {
+            document.getElementById('add-employee-form').style.display = 'block';
+            this.style.display = 'none';
+        });
+        
+        document.getElementById('cancel-add').addEventListener('click', function() {
+            document.getElementById('add-employee-form').style.display = 'none';
+            addEmployeeBtn.style.display = 'inline-block';
+        });
+        
+        // Form submission
+        document.getElementById('add-employee-form-content').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const employeeData = {
+                name: document.getElementById('new-name').value,
+                email: document.getElementById('new-email').value,
+                password: document.getElementById('new-password').value,
+                position: document.getElementById('new-position').value,
+                department: document.getElementById('new-department').value,
+                is_admin: parseInt(document.getElementById('new-is-admin').value)
+            };
+            
+            try {
+                const response = await apiRequest('/employees', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(employeeData)
+                });
+                
+                alert('Employee added successfully!');
+                document.getElementById('add-employee-form-content').reset();
+                document.getElementById('add-employee-form').style.display = 'none';
+                addEmployeeBtn.style.display = 'inline-block';
+                
+                // Refresh employee table
+                loadAdminDashboard();
+            } catch (error) {
+                alert('Error adding employee: ' + error.message);
+            }
+        });
+    }
+});
 // Handle task assignment
 async function handleTaskAssignment() {
     const employeeId = assignEmployeeSelect.value;
