@@ -1,30 +1,36 @@
 // server.js
 const express = require('express');
 const mysql = require('mysql2');
-const WebSocket = require('ws'); // This is the only declaration needed
+const WebSocket = require('ws');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const path = require('path'); // ADD THIS LINE
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = 'your_jwt_secret_key_here'; // Change this in production
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here';
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// MySQL Database Connection
-// MySQL Database Connection - Railway compatible
-const db = mysql.createConnection({
+// Serve static files (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname)));
+
+// MySQL Database Connection - Railway
+const dbConfig = process.env.DATABASE_URL ? 
+  process.env.DATABASE_URL : {
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'employee',
     port: process.env.DB_PORT || 3306
-});
+  };
+
+const db = mysql.createConnection(dbConfig);
 
 // Connect to MySQL
 db.connect((err) => {
@@ -34,10 +40,14 @@ db.connect((err) => {
     }
     console.log('Connected to MySQL database');
     
-    // Initialize database with required tables
+    // Initialize database
     initializeDatabase();
 });
 
+// Serve main.html at root
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'main.html'));
+});
 // Middleware to verify JWT token
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
