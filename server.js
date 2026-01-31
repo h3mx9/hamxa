@@ -22,47 +22,22 @@ app.use(express.static(path.join(__dirname)));
 
 // MySQL Database Connection - Railway
 // MySQL Database Connection - Railway FIXED
-let dbConfig;
+// Simple database connection for Railway
+const db = mysql.createConnection({
+    uri: 'mysql://root:qbSRMsQerOciGUsIucYXMneBxuYAbBqe@crossover.proxy.rlwy.net:20883/railway',
+    ssl: { rejectUnauthorized: false }
+});
 
-console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'Exists' : 'Not found');
-
-if (process.env.DATABASE_URL) {
-    // Railway provides DATABASE_URL as connection string
-    console.log('Using DATABASE_URL from Railway');
-    dbConfig = process.env.DATABASE_URL;
-} else {
-    // Fallback for local development
-    console.log('Using local database configuration');
-    dbConfig = {
-        host: process.env.DB_HOST || 'localhost',
-        user: process.env.DB_USER || 'root', 
-        password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_NAME || 'employee',
-        port: process.env.DB_PORT || 3306
-    };
-}
-
-const db = mysql.createConnection(dbConfig);
-
-// Connect to MySQL with retry logic
-function connectToDatabase() {
-    db.connect((err) => {
-        if (err) {
-            console.error('Error connecting to MySQL:', err.message);
-            console.log('DB Config:', dbConfig.host || 'Using DATABASE_URL');
-            
-            // Wait 5 seconds and try again
-            console.log('Retrying connection in 5 seconds...');
-            setTimeout(connectToDatabase, 5000);
-            return;
-        }
-        
-        console.log('✅ Connected to MySQL database');
-        
-        // Initialize database
+db.connect((err) => {
+    if (err) {
+        console.error('Database connection error:', err);
+        // Keep trying
+        setTimeout(() => db.connect(), 3000);
+    } else {
+        console.log('✅ Database connected!');
         initializeDatabase();
-    });
-}
+    }
+});
 
 // Start connection
 connectToDatabase();
