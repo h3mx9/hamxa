@@ -1,0 +1,1906 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary: #4e73df;
+            --success: #1cc88a;
+            --warning: #f6c23e;
+            --danger: #e74a3b;
+            --secondary: #858796;
+            --light: #f8f9fc;
+            --dark: #5a5c69;
+        }
+        
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--primary) 0%, #224abe 100%);
+            color: white;
+            position: fixed;
+            width: 250px;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        
+        /* Sidebar collapsed state */
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        
+        .sidebar.collapsed .sidebar-content {
+            display: none;
+        }
+        
+        .sidebar.collapsed .sidebar-toggle i {
+            transform: rotate(180deg);
+        }
+        
+        .sidebar.collapsed .nav-link {
+            text-align: center;
+            padding: 1rem 0.5rem;
+        }
+        
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+            font-size: 1.2rem;
+        }
+        
+        .sidebar.collapsed .nav-link span {
+            display: none;
+        }
+        
+        .sidebar.collapsed .sidebar-heading {
+            display: none;
+        }
+        
+        .sidebar.collapsed .sidebar-header h4 {
+            display: none;
+        }
+        
+        .sidebar.collapsed .sidebar-header h5 {
+            display: block !important;
+        }
+        
+        .sidebar-header h5 {
+            display: none;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        
+        .sidebar-toggle {
+            position: absolute;
+            right: -12px;
+            top: 50px;
+            background: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 101;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-toggle:hover {
+            transform: scale(1.1);
+            background: #f8f9fc;
+        }
+        
+        .sidebar-toggle i {
+            font-size: 0.8rem;
+            color: var(--primary);
+            transition: transform 0.3s ease;
+        }
+        /* Add to the existing CSS */
+.btn-group .btn {
+    margin-right: 5px;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+.view-desc-btn, .assign-task-btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.modal-body h6 {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+#task-description-modal {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 5px;
+    border-left: 3px solid var(--primary);
+}
+        .sidebar .nav-item {
+            margin-bottom: 5px;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar .nav-link.active {
+            font-weight: bold;
+            color: white;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .sidebar-heading {
+            padding: 1.5rem 1rem 0.5rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        #content {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+            transition: all 0.3s ease;
+        }
+        
+        /* When sidebar is collapsed */
+        .sidebar.collapsed + #content {
+            margin-left: 70px;
+            width: calc(100% - 70px);
+        }
+        
+        .topbar {
+            height: 70px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        
+        .status-badge {
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+            font-weight: 700;
+            border-radius: 0.35rem;
+        }
+        
+        .bg-active {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .bg-inactive {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .bg-busy {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .employee-card {
+            transition: transform 0.2s;
+        }
+        
+        .employee-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            background: white;
+        }
+        
+        .dashboard-card {
+            border-left: 4px solid var(--primary);
+        }
+        
+        .dashboard-card.active {
+            border-left: 4px solid var(--success);
+        }
+        
+        .dashboard-card.inactive {
+            border-left: 4px solid var(--danger);
+        }
+        
+        .dashboard-card.busy {
+            border-left: 4px solid var(--warning);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+        
+        .activity-timeline {
+            border-left: 2px solid var(--primary);
+            margin-left: 10px;
+            padding-left: 20px;
+        }
+        
+        .activity-event {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .activity-event:before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen (initially visible) -->
+    <div id="login-screen" class="login-container">
+        <h2 class="text-center mb-4">Employee Login</h2>
+        <form id="login-form">
+            <div class="mb-3">
+                <label for="email" class="form-label">Email address</label>
+                <input type="email" class="form-control" id="email" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
+        <p class="text-center mt-3">
+            <small>Demo: Use "admin@office.com" for admin or any employee email</small>
+        </p>
+    </div>
+
+    <!-- Main Dashboard (hidden initially) -->
+    <div id="main-dashboard" style="display: none;">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-toggle" id="sidebarToggleBtn">
+                <i class="bi bi-chevron-left"></i>
+            </div>
+            <div class="py-4 text-center sidebar-header">
+                <h4>Office Dashboard</h4>
+                <h5>OD</h5>
+            </div>
+            <hr class="my-2">
+            <div class="sidebar-content">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active dashboard-link" href="#">
+                            <i class="bi bi-speedometer2 me-2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="sidebar-heading mt-4">My Account</div>
+                <ul class="nav flex-column mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link profile-link" href="#">
+                            <i class="bi bi-person me-2"></i>
+                            <span>Profile</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="logout-btn">
+                            <i class="bi bi-box-arrow-right me-2"></i>
+                            <span>Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Content Wrapper -->
+        <div id="content">
+            <!-- Topbar -->
+            <nav class="navbar navbar-expand topbar mb-4 static-top shadow" style="background-color: white;">
+                <div class="container-fluid">
+                    <button id="mobileSidebarToggle" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <h5 class="mb-0" id="dashboard-title">Admin Dashboard</h5>
+                    <ul class="navbar-nav ml-auto">
+                        <!-- Update the alertsDropdown in the navbar -->
+<li class="nav-item dropdown no-arrow mx-1">
+    <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
+        data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-bell-fill"></i>
+        <span class="badge bg-danger badge-counter" style="display: none;">0</span>
+    </a>
+    <div class="dropdown-list dropdown-menu dropdown-menu-end shadow animated--grow-in notification-dropdown"
+        aria-labelledby="alertsDropdown">
+        <h6 class="dropdown-header">
+            Notifications
+            <button class="btn btn-sm btn-outline-secondary float-end" id="mark-all-read">
+                Mark all as read
+            </button>
+        </h6>
+        <div id="notification-list">
+            <!-- Notifications will be loaded here -->
+        </div>
+        <a class="dropdown-item text-center small text-gray-500" href="#" id="view-all-notifications">
+            Show All Notifications
+        </a>
+    </div>
+</li>
+                         
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="d-none d-lg-inline text-gray-600 small" id="user-name">Admin User</span>
+                                <img class="img-profile rounded-circle ms-2" width="32" height="32"
+                                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%234e73df'/%3E%3Cpath fill='white' d='M16 17c-3.36 0-6.14-2.64-6.14-5.92S12.64 5.16 16 5.16c3.36 0 6.14 2.64 6.14 5.92S19.36 17 16 17zm0-10.18c-2.36 0-4.32 1.86-4.32 4.26S13.64 15.34 16 15.34c2.36 0 4.32-1.86 4.32-4.26S18.36 6.82 16 6.82zm8 16.36c0-1.46-4.32-2.26-8-2.26s-8 .8-8 2.26v1.64h16v-1.64z'/%3E%3C/svg%3E">
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <div class="container-fluid">
+                <!-- Page Heading -->
+                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <h1 class="h3 mb-0 text-gray-800" id="page-title">Dashboard</h1>
+                    
+                </div>
+
+                <!-- Content Row -->
+                
+
+                <!-- Employee Status Table -->
+                <div class="card shadow mb-4" id="employee-table-container">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Employee Status</h6>
+                        <div class="dropdown no-arrow">
+                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-three-dots-vertical text-gray-400"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="employeeTable" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                                                            <th>Status</th>
+    
+                                        <th>Department</th>
+                                        <th>Current Task</th>
+                                        <th>Task Notes</th> <!-- NEW COLUMN -->
+            <th>Last Activity</th>
+            <th>Actions</th>
+                                        
+                                    </tr>
+                                </thead>
+                                <tbody id="employee-table-body">
+                                    <!-- Table rows will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Section (initially hidden) -->
+                <div id="profile-section" style="display: none;">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Employee Profile</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <img class="img-profile rounded-circle" width="120" height="120"
+                                            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%234e73df'/%3E%3Cpath fill='white' d='M16 17c-3.36 0-6.14-2.64-6.14-5.92S12.64 5.16 16 5.16c3.36 0 6.14 2.64 6.14 5.92S19.36 17 16 17zm0-10.18c-2.36 0-4.32 1.86-4.32 4.26S13.64 15.34 16 15.34c2.36 0 4.32-1.86 4.32-4.26S18.36 6.82 16 6.82zm8 16.36c0-1.46-4.32-2.26-8-2.26s-8 .8-8 2.26v1.64h16v-1.64z'/%3E%3C/svg%3E">
+                                        <h5 class="mt-3" id="profile-name">Employee Name</h5>
+                                        <p class="text-muted" id="profile-position">Position</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <form id="profile-form">
+                                        <div class="row mb-3">
+                                            <div class="col-sm-6">
+                                                <label for="current-status" class="form-label">Current Status</label>
+                                                <select class="form-select" id="current-status">
+                                                    <option value="active">Active</option>
+                                                    <option value="inactive">Inactive</option>
+                                                    <option value="busy">Busy</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label for="current-task" class="form-label">Current Task</label>
+                                                <select class="form-select" id="current-task">
+                                                    <option value="">Select a task</option>
+                                                    <!-- Tasks will be populated by JavaScript -->
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="task-description" class="form-label">Task Description</label>
+                                            <textarea class="form-control" id="task-description" rows="3"></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Update Status</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Activity Timeline</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="activity-timeline" id="activity-timeline">
+                                <!-- Activity events will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="dashboard-cards">
+                    <!-- Cards will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="assignTaskModal" tabindex="-1" aria-labelledby="assignTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignTaskModalLabel">Assign Task to Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="assign-task-form">
+                    <div class="mb-3">
+                        <label for="assign-employee" class="form-label">Select Employee</label>
+                        <select class="form-select" id="assign-employee" required>
+                            <option value="">Choose employee...</option>
+                            <!-- Will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assign-task" class="form-label">Select Task</label>
+                        <select class="form-select" id="assign-task" required>
+                            <option value="">Choose task...</option>
+                            <!-- Will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assign-notes" class="form-label">Notes/Instructions</label>
+                        <textarea class="form-control" id="assign-notes" rows="3" placeholder="Add any additional instructions..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-assignment">Assign Task</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task Description Modal -->
+<div class="modal fade" id="taskDescriptionModal" tabindex="-1" aria-labelledby="taskDescriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskDescriptionModalLabel">Task Notes</h5>  <!-- CHANGED -->
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 id="task-title-modal">Task Title</h6>
+                <p><strong>Project:</strong> <span id="task-project-modal">N/A</span></p>
+                <p><strong>Notes:</strong></p>  <!-- CHANGED from Description to Notes -->
+                <p id="task-description-modal" class="text-muted">No notes available.</p>  <!-- CHANGED text -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // API base URL
+        const API_BASE_URL = 'http://localhost:3000/api';
+        
+        // Global variables
+        let currentUser = null;
+        let authToken = null;
+        
+        // DOM Elements
+        const loginScreen = document.getElementById('login-screen');
+        const mainDashboard = document.getElementById('main-dashboard');
+        const loginForm = document.getElementById('login-form');
+        const profileSection = document.getElementById('profile-section');
+        const dashboardSection = document.getElementById('dashboard-cards');
+        const employeeTableContainer = document.getElementById('employee-table-container');
+        const employeeTableBody = document.getElementById('employee-table-body');
+        const logoutBtn = document.getElementById('logout-btn');
+        const dashboardTitle = document.getElementById('dashboard-title');
+        const pageTitle = document.getElementById('page-title');
+        const userName = document.getElementById('user-name');
+        const profileName = document.getElementById('profile-name');
+        const profilePosition = document.getElementById('profile-position');
+        const profileForm = document.getElementById('profile-form');
+        const currentStatus = document.getElementById('current-status');
+        const currentTask = document.getElementById('current-task');
+        const activityTimeline = document.getElementById('activity-timeline');
+        const dashboardLink = document.querySelector('.dashboard-link');
+        const profileLink = document.querySelector('.profile-link');
+        const assignTaskModal = new bootstrap.Modal(document.getElementById('assignTaskModal'));
+const taskDescriptionModal = new bootstrap.Modal(document.getElementById('taskDescriptionModal'));
+const assignTaskForm = document.getElementById('assign-task-form');
+const assignEmployeeSelect = document.getElementById('assign-employee');
+const assignTaskSelect = document.getElementById('assign-task');
+const saveAssignmentBtn = document.getElementById('save-assignment');
+
+// Sidebar toggle elements
+const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+const sidebar = document.querySelector('.sidebar');
+const content = document.getElementById('content');
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+    // Check if user is already logged in
+    const savedToken = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    
+    if (savedToken && savedUser) {
+        authToken = savedToken;
+        currentUser = JSON.parse(savedUser);
+        loginScreen.style.display = 'none';
+        mainDashboard.style.display = 'block';
+        
+        // Initialize realtime features including WebSocket
+        initializeRealtime(); // Add this line
+        
+        if (currentUser.is_admin) {
+            loadAdminDashboard();
+        } else {
+            loadEmployeeDashboard();
+        }
+    }
+            
+            // Login form submission
+            loginForm.addEventListener('submit', handleLogin);
+            saveAssignmentBtn.addEventListener('click', handleTaskAssignment);
+            // Logout button click
+            logoutBtn.addEventListener('click', handleLogout);
+            
+            // Profile form submission
+            profileForm.addEventListener('submit', handleStatusUpdate);
+            
+            // Navigation links
+            dashboardLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (currentUser.is_admin) {
+                    loadAdminDashboard();
+                } else {
+                    loadEmployeeDashboard();
+                }
+            });
+            
+            profileLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                loadProfile();
+            });
+            
+            // Sidebar toggle functionality
+            setupSidebarToggle();
+        });
+
+// Setup sidebar toggle functionality
+function setupSidebarToggle() {
+    // Toggle button in sidebar
+    if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', toggleSidebar);
+    }
+    
+    // Mobile toggle button in topbar
+    if (mobileSidebarToggle) {
+        mobileSidebarToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            toggleSidebar();
+        });
+    }
+    
+    // Check saved sidebar state
+    const sidebarState = localStorage.getItem('sidebarCollapsed');
+    if (sidebarState === 'true') {
+        collapseSidebar();
+    }
+}
+
+// Toggle sidebar function
+function toggleSidebar() {
+    if (sidebar.classList.contains('collapsed')) {
+        expandSidebar();
+    } else {
+        collapseSidebar();
+    }
+}
+
+// Collapse sidebar
+function collapseSidebar() {
+    sidebar.classList.add('collapsed');
+    localStorage.setItem('sidebarCollapsed', 'true');
+}
+
+// Expand sidebar
+function expandSidebar() {
+    sidebar.classList.remove('collapsed');
+    localStorage.setItem('sidebarCollapsed', 'false');
+}
+
+        // Handle login
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Login failed');
+                }
+                
+                // Store token and user data
+                authToken = data.token;
+                currentUser = data.employee;
+                
+                localStorage.setItem('token', authToken);
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                
+                // Redirect to dashboard
+                loginScreen.style.display = 'none';
+                mainDashboard.style.display = 'block';
+                
+                // Update UI based on user role
+                if (currentUser.is_admin) {
+                    loadAdminDashboard();
+                } else {
+                    loadEmployeeDashboard();
+                }
+                initializeRealtime();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        // Handle logout
+        function handleLogout(e) {
+            e.preventDefault();
+            
+            // Clear stored data
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('sidebarCollapsed');
+            
+            // Reset UI
+            currentUser = null;
+            authToken = null;
+            mainDashboard.style.display = 'none';
+            loginScreen.style.display = 'block';
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            
+            // Reset sidebar to expanded state
+            expandSidebar();
+        }
+
+        // API request helper function
+        async function apiRequest(url, options = {}) {
+            if (!options.headers) {
+                options.headers = {};
+            }
+            
+            options.headers['Authorization'] = `Bearer ${authToken}`;
+            
+            const response = await fetch(`${API_BASE_URL}${url}`, options);
+            
+            if (!response.ok) {
+                if (response.status === 401) {
+                    // Token expired or invalid
+                    handleLogout(new Event('click'));
+                    throw new Error('Session expired. Please login again.');
+                }
+                
+                const error = await response.json();
+                throw new Error(error.error || 'Request failed');
+            }
+            
+            return response.json();
+        }
+
+        // Load admin dashboard
+        async function loadAdminDashboard() {
+    dashboardTitle.textContent = 'Admin Dashboard';
+    pageTitle.textContent = '';
+    userName.textContent = currentUser.name;
+    profileSection.style.display = 'none';
+    dashboardSection.style.display = 'block';
+    employeeTableContainer.style.display = 'block';
+    
+    try {
+        // Load dashboard statistics
+        const stats = await apiRequest('/dashboard/stats');
+        renderDashboardCards(stats);
+        
+        // Load employees for table and dropdown
+        const employees = await apiRequest('/employees');
+        renderEmployeeTable(employees);
+        
+        // Load employees for assignment dropdown
+        populateEmployeeDropdown(employees);
+        
+    } catch (error) {
+        alert(error.message);
+    }
+}
+function populateEmployeeDropdown(employees) {
+    assignEmployeeSelect.innerHTML = '<option value="">Choose employee...</option>';
+    
+    employees.forEach(employee => {
+        const option = document.createElement('option');
+        option.value = employee.id;
+        option.textContent = `${employee.name} (${employee.department})`;
+        assignEmployeeSelect.appendChild(option);
+    });
+}
+
+
+        // Load employee dashboard
+        async function loadEmployeeDashboard() {
+            dashboardTitle.textContent = 'Employee Dashboard';
+            pageTitle.textContent = 'My Profile';
+            userName.textContent = currentUser.name;
+            profileSection.style.display = 'block';
+            dashboardSection.style.display = 'none';
+            employeeTableContainer.style.display = 'none';
+            
+            try {
+                // Load employee profile
+                profileName.textContent = currentUser.name;
+                profilePosition.textContent = currentUser.position;
+                
+                // Load tasks
+                const tasks = await apiRequest('/tasks');
+                populateTasksDropdown(tasks);
+                
+                // Load current status
+                const status = await apiRequest('/employee/status');
+                if (status.status) {
+                    currentStatus.value = status.status;
+                    currentTask.value = status.task_id || '';
+                    document.getElementById('task-description').value = status.notes || '';
+                }
+                
+                // Load activity log
+                const activities = await apiRequest('/employee/activity');
+                renderActivityTimeline(activities);
+            } catch (error) {
+                alert(error.message);
+            }
+            setInterval(async () => {
+    if (!currentUser.is_admin && document.getElementById('profile-section').style.display !== 'none') {
+        try {
+            const activities = await apiRequest('/employee/activity');
+            renderActivityTimeline(activities);
+        } catch (error) {
+            console.error('Error auto-refreshing activity timeline:', error);
+        }
+    }
+}, 30000);
+        }
+function populateTasksDropdown(tasks) {
+    currentTask.innerHTML = '<option value="">Select a task</option>';
+    
+    tasks.forEach(task => {
+        const option = document.createElement('option');
+        option.value = task.id;
+        let displayText = task.title;
+        if (task.project_name) {
+            displayText += ` (${task.project_name})`;
+        }
+        if (task.description) {
+            displayText += ` - ${task.description.substring(0, 30)}${task.description.length > 30 ? '...' : ''}`;
+        }
+        option.textContent = displayText;
+        currentTask.appendChild(option);
+    });
+}
+        // Load profile page
+        function loadProfile() {
+            if (!currentUser.is_admin) {
+                pageTitle.textContent = 'My Profile';
+                profileSection.style.display = 'block';
+                dashboardSection.style.display = 'none';
+                employeeTableContainer.style.display = 'none';
+            }
+        }
+
+        // Handle status update
+        async function handleStatusUpdate(e) {
+            e.preventDefault();
+            
+            const status = currentStatus.value;
+            const task_id = currentTask.value || null;
+            const notes = document.getElementById('task-description').value;
+            
+            try {
+                await apiRequest('/employee/status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status, task_id, notes })
+                });
+                
+                alert('Status updated successfully!');
+                
+                // Reload activities
+                const activities = await apiRequest('/employee/activity');
+                renderActivityTimeline(activities);
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        // Render dashboard cards
+        // Initialize WebSocket and notifications after login
+async function initializeRealtime() {
+    // Initialize notification sound
+    initNotificationSound();
+    
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+    
+    // Initialize WebSocket connection
+    initWebSocket();
+    
+    // Load existing notifications
+    await loadNotifications();
+    
+    // Setup notification dropdown
+    setupNotificationDropdown();
+}
+
+// Setup notification dropdown functionality
+function setupNotificationDropdown() {
+    const alertsDropdown = document.getElementById('alertsDropdown');
+    const notificationList = document.getElementById('notification-list');
+    const markAllReadBtn = document.getElementById('mark-all-read');
+    const viewAllNotifications = document.getElementById('view-all-notifications');
+    
+    // Load notifications when dropdown is shown
+    alertsDropdown.addEventListener('shown.bs.dropdown', async function() {
+        await refreshNotificationList();
+    });
+    
+    // Mark all as read button
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            try {
+                await apiRequest('/notifications/read-all', {
+                    method: 'POST'
+                });
+                
+                notificationCount = 0;
+                updateNotificationBadge();
+                await refreshNotificationList();
+            } catch (error) {
+                alert('Error marking notifications as read: ' + error.message);
+            }
+        });
+    }
+    
+    // View all notifications
+    if (viewAllNotifications) {
+        viewAllNotifications.addEventListener('click', function(e) {
+            e.preventDefault();
+            // You could implement a full notifications page here
+            alert('View all notifications feature - to be implemented');
+        });
+    }
+}
+
+// Refresh notification list in dropdown
+async function refreshNotificationList() {
+    const notificationList = document.getElementById('notification-list');
+    if (!notificationList) return;
+    
+    try {
+        const notifications = await apiRequest('/notifications');
+        
+        if (notifications.length === 0) {
+            notificationList.innerHTML = `
+                <div class="text-center py-3 text-muted">
+                    No notifications
+                </div>
+            `;
+            return;
+        }
+        
+        notificationList.innerHTML = '';
+        
+        notifications.forEach(notification => {
+            const notificationItem = document.createElement('div');
+            notificationItem.className = `notification-item ${notification.is_read ? '' : 'unread'}`;
+            
+            const timeAgo = getTimeAgo(new Date(notification.created_at));
+            
+            notificationItem.innerHTML = `
+                <div class="px-3">
+                    <div class="d-flex justify-content-between">
+                        <strong>${notification.title}</strong>
+                        <small class="notification-time">${timeAgo}</small>
+                    </div>
+                    <div class="mb-1">${notification.message}</div>
+                    ${!notification.is_read ? `
+                        <button class="btn btn-sm btn-outline-primary mark-read-btn" data-id="${notification.id}">
+                            Mark as read
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+            
+            notificationList.appendChild(notificationItem);
+        });
+        
+        // Add event listeners to mark as read buttons
+        document.querySelectorAll('.mark-read-btn').forEach(btn => {
+            btn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const notificationId = this.getAttribute('data-id');
+                
+                try {
+                    await apiRequest(`/notifications/${notificationId}/read`, {
+                        method: 'POST'
+                    });
+                    
+                    // Update UI
+                    this.closest('.notification-item').classList.remove('unread');
+                    this.remove();
+                    
+                    // Update badge
+                    notificationCount = Math.max(0, notificationCount - 1);
+                    updateNotificationBadge();
+                } catch (error) {
+                    console.error('Error marking notification as read:', error);
+                }
+            });
+        });
+    } catch (error) {
+        console.error('Error refreshing notification list:', error);
+        notificationList.innerHTML = `
+            <div class="text-center py-3 text-danger">
+                Error loading notifications
+            </div>
+        `;
+    }
+}
+
+// Helper function to format time ago
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    
+    let interval = Math.floor(seconds / 31536000);
+    if (interval > 1) return interval + ' years ago';
+    
+    interval = Math.floor(seconds / 2592000);
+    if (interval > 1) return interval + ' months ago';
+    
+    interval = Math.floor(seconds / 86400);
+    if (interval > 1) return interval + ' days ago';
+    
+    interval = Math.floor(seconds / 3600);
+    if (interval > 1) return interval + ' hours ago';
+    
+    interval = Math.floor(seconds / 60);
+    if (interval > 1) return interval + ' minutes ago';
+    
+    return Math.floor(seconds) + ' seconds ago';
+}
+
+        // Render employee table
+        function renderEmployeeTable(employees) {
+    employeeTableBody.innerHTML = '';
+    
+    employees.forEach(employee => {
+        let statusBadge = '';
+        if (employee.status === 'active') {
+            statusBadge = '<span class="status-badge bg-active">Active</span>';
+        } else if (employee.status === 'busy') {
+            statusBadge = '<span class="status-badge bg-busy">Busy</span>';
+        } else {
+            statusBadge = '<span class="status-badge bg-inactive">Inactive</span>';
+        }
+        
+        const lastActivity = employee.start_time 
+            ? new Date(employee.start_time).toLocaleTimeString() 
+            : 'N/A';
+        
+        // Truncate notes for table view (using task_notes from employee_status)
+        const shortDescription = employee.task_notes  // CHANGED: from task_description to task_notes
+            ? (employee.task_notes.length > 50 
+                ? employee.task_notes.substring(0, 50) + '...' 
+                : employee.task_notes)
+            : '-';
+        
+        // View description button (only if there's notes)
+        const viewDescBtn = employee.task_notes  // CHANGED: from task_description to task_notes
+            ? `<button class="btn btn-sm btn-outline-info view-desc-btn" 
+               data-task-id="${employee.task_id}" 
+               data-task-title="${employee.task_title || ''}" 
+               data-task-desc="${employee.task_notes || ''}"  // CHANGED
+               data-project="${employee.project_name || ''}">
+                   <i class="bi bi-eye"></i>
+               </button>`
+            : '-';
+        
+        // Assign task button (always shown for admin)
+        const assignBtn = `<button class="btn btn-sm btn-primary assign-task-btn" 
+                          data-employee-id="${employee.id}" 
+                          data-employee-name="${employee.name}">
+                              <i class="bi bi-plus-circle"></i> Assign
+                          </button>`;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${employee.name}</td>
+            <td>${statusBadge}</td>
+            <td>${employee.department}</td>
+            <td>${employee.task_title || '-'}</td>
+            <td>${shortDescription}</td>  <!-- Now shows notes from employee_status -->
+            <td>${lastActivity}</td>
+            <td>
+                <div class="btn-group" role="group">
+                    ${viewDescBtn !== '-' ? viewDescBtn : '<span>-</span>'}
+                    ${assignBtn}
+                </div>
+            </td>
+        `;
+        
+        employeeTableBody.appendChild(row);
+    });
+    
+    // Add event listeners after the table is populated
+    setTimeout(() => {
+        // View description buttons
+        document.querySelectorAll('.view-desc-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const taskId = this.getAttribute('data-task-id');
+                const taskTitle = this.getAttribute('data-task-title');
+                const taskDesc = this.getAttribute('data-task-desc');  // This is now notes
+                const project = this.getAttribute('data-project');
+                
+                document.getElementById('task-title-modal').textContent = taskTitle || 'No Task';
+                document.getElementById('task-project-modal').textContent = project || 'N/A';
+                document.getElementById('task-description-modal').textContent = taskDesc || 'No notes available.';
+                
+                taskDescriptionModal.show();
+            });
+        });
+        
+        // Assign task buttons
+        document.querySelectorAll('.assign-task-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const employeeId = this.getAttribute('data-employee-id');
+                const employeeName = this.getAttribute('data-employee-name');
+                
+                // Set the selected employee
+                assignEmployeeSelect.value = employeeId;
+                
+                // Load tasks for dropdown
+                try {
+                    const tasks = await apiRequest('/tasks/with-description');
+                    populateAssignTaskDropdown(tasks);
+                    
+                    // Show modal
+                    assignTaskModal.show();
+                } catch (error) {
+                    alert('Error loading tasks: ' + error.message);
+                }
+            });
+        });
+    }, 100);
+}
+
+
+
+// New function to populate assign task dropdown
+function populateAssignTaskDropdown(tasks) {
+    assignTaskSelect.innerHTML = '<option value="">Choose task...</option>';
+    
+    tasks.forEach(task => {
+        const option = document.createElement('option');
+        option.value = task.id;
+        let displayText = task.title;
+        if (task.project_name) {
+            displayText += ` (${task.project_name})`;
+        }
+        if (task.description) {
+            displayText += ` - ${task.description.substring(0, 30)}${task.description.length > 30 ? '...' : ''}`;
+        }
+        option.textContent = displayText;
+        assignTaskSelect.appendChild(option);
+    });
+}
+
+// Handle task assignment
+async function handleTaskAssignment() {
+    const employeeId = assignEmployeeSelect.value;
+    const taskId = assignTaskSelect.value;
+    const notes = document.getElementById('assign-notes').value;
+    
+    if (!employeeId || !taskId) {
+        alert('Please select both an employee and a task.');
+        return;
+    }
+    
+    try {
+        await apiRequest('/tasks/assign', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                employee_id: employeeId, 
+                task_id: taskId, 
+                notes: notes 
+            })
+        });
+        
+        // Show success message
+        alert('Task assigned successfully!');
+        
+        // Close modal and reset form
+        assignTaskModal.hide();
+        assignTaskForm.reset();
+        
+        // Refresh employee table
+        const employees = await apiRequest('/employees');
+        renderEmployeeTable(employees);
+        
+    } catch (error) {
+        alert('Error assigning task: ' + error.message);
+    }
+}
+        // Render activity timeline
+        function renderActivityTimeline(activities) {
+            activityTimeline.innerHTML = '';
+            
+            activities.forEach(activity => {
+                const eventDiv = document.createElement('div');
+                eventDiv.className = 'activity-event';
+                
+                const timestamp = new Date(activity.timestamp).toLocaleString();
+                
+                eventDiv.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <h6 class="mb-1">${activity.action}</h6>
+                        <small class="text-muted">${timestamp}</small>
+                    </div>
+                    <p class="mb-0 text-muted">${activity.details || ''}</p>
+                `;
+                
+                activityTimeline.appendChild(eventDiv);
+            });
+            
+            if (activities.length === 0) {
+                activityTimeline.innerHTML = '<p>No activities found</p>';
+            }
+        }function renderDashboardCards(stats) {
+            dashboardSection.innerHTML = `
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Employees</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${stats.totalEmployees}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-people fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card active h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Employees</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${stats.activeEmployees}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-person-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card busy h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Working on Tasks</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${stats.busyEmployees}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-list-task fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card inactive h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Inactive Employees</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${stats.inactiveEmployees}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-person-x fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+`;
+
+        }
+        // Add these variables with other global variables
+let ws = null;
+let notificationSound = null;
+let notificationCount = 0;
+
+// Initialize notification sound
+// Replace the initNotificationSound function completely with this:
+function initNotificationSound() {
+    try {
+        // First, try to create a simple beep sound using the Web Audio API
+        // This works even without any MP3 files
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        notificationSound = {
+            play: function() {
+                try {
+                    // Resume audio context if suspended (required by browsers)
+                    if (audioContext.state === 'suspended') {
+                        audioContext.resume();
+                    }
+                    
+                    // Create oscillator for beep sound
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    // Configure the beep sound
+                    oscillator.frequency.value = 800; // Frequency in Hz
+                    oscillator.type = 'sine'; // Type of wave
+                    
+                    // Configure volume (fade in/out)
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.1);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    
+                    // Start and stop the sound
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    
+                    console.log('Playing notification sound (Web Audio API)');
+                } catch (error) {
+                    console.error('Error playing Web Audio API sound:', error);
+                    // Fallback to HTML5 Audio with data URL
+                    playFallbackAudio();
+                }
+            }
+        };
+        
+        console.log('Notification sound initialized (Web Audio API)');
+    } catch (error) {
+        console.warn('Web Audio API not available, using fallback:', error);
+        // Fallback to HTML5 Audio
+        createFallbackAudio();
+    }
+}
+
+// Fallback audio using data URL (no file needed)
+function createFallbackAudio() {
+    try {
+        // Create a very short beep sound using base64 encoded audio
+        // This is a minimal WAV file for a 100ms beep at 800Hz
+        const base64Sound = 'UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+        
+        notificationSound = new Audio('data:audio/wav;base64,' + base64Sound);
+        notificationSound.volume = 0.5;
+        
+        // Test if we can play it
+        notificationSound.load();
+        
+        console.log('Notification sound initialized (data URL fallback)');
+    } catch (error) {
+        console.warn('Data URL audio failed, using silent notification:', error);
+        notificationSound = {
+            play: function() {
+                console.log('Notification (silent - no audio available)');
+            }
+        };
+    }
+}
+
+// Alternative fallback if Web Audio fails during playback
+function playFallbackAudio() {
+    try {
+        if (!notificationSound || typeof notificationSound.play !== 'function') {
+            createFallbackAudio();
+        }
+        
+        // If we have an HTMLAudioElement, play it
+        if (notificationSound instanceof HTMLAudioElement) {
+            notificationSound.currentTime = 0;
+            notificationSound.play().catch(e => {
+                console.log('Fallback audio play blocked:', e);
+            });
+        }
+    } catch (error) {
+        console.error('All audio methods failed:', error);
+    }
+}
+
+// Update the handleIncomingNotification function to ensure audio plays
+function handleIncomingNotification(notification) {
+    // Play notification sound
+    if (notificationSound && typeof notificationSound.play === 'function') {
+        try {
+            // Use requestAnimationFrame to ensure audio context is ready
+            requestAnimationFrame(() => {
+                notificationSound.play();
+            });
+        } catch (error) {
+            console.log('Error playing notification sound:', error);
+        }
+    } else {
+        console.log('Notification sound not available');
+    }
+    
+    // Show desktop notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+            new Notification(notification.title, {
+                body: notification.message,
+                icon: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#4e73df"><circle cx="12" cy="12" r="10"/><path fill="white" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>')
+            });
+        } catch (error) {
+            console.log('Desktop notification failed:', error);
+        }
+    }
+    
+    // Update notification badge
+    notificationCount++;
+    updateNotificationBadge();
+    
+    // Show toast notification
+    showToastNotification(notification);
+    
+    // Auto-refresh based on notification type
+    if (notification.type === 'task_assigned' || notification.task_assigned) {
+        // For employee: refresh activity timeline
+        if (!currentUser.is_admin) {
+            refreshActivityTimeline();
+        }
+        // For admin: refresh employee table
+        else {
+            refreshEmployeeTable();
+        }
+    } else if (notification.status_updated) {
+        // Refresh relevant data when status changes
+        if (currentUser.is_admin) {
+            refreshEmployeeTable();
+        }
+    }
+    
+    // Refresh employee activities if on employee dashboard
+    if (!currentUser.is_admin) {
+        refreshEmployeeActivities();
+    }
+}
+
+// Initialize WebSocket connection
+// Initialize WebSocket connection
+function initWebSocket() {
+    if (!authToken) {
+        console.log('No auth token, skipping WebSocket connection');
+        return false;
+    }
+    
+    // Close existing connection if any
+    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+        ws.close();
+    }
+    
+    try {
+        // Connect to WebSocket server
+        ws = new WebSocket(`ws://localhost:3000?token=${authToken}`);
+        
+        ws.onopen = function() {
+            console.log('WebSocket connection established');
+            // Set a flag to indicate connection is active
+            localStorage.setItem('wsConnected', 'true');
+        };
+        
+        ws.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                console.log('WebSocket message received:', data);
+                
+                if (data.type === 'notification') {
+                    handleIncomingNotification(data);
+                    
+                    // Check if we should refresh the employee table
+                    if (data.task_assigned || data.status_updated) {
+                        refreshEmployeeTable();
+                    }
+                } else if (data.type === 'status_update') {
+                    // Handle status update from other employees
+                    handleStatusUpdateNotification(data);
+                } else if (data.type === 'connected') {
+                    console.log(data.message);
+                }
+            } catch (error) {
+                console.error('Error processing WebSocket message:', error);
+            }
+        };
+        
+        ws.onclose = function(event) {
+            console.log('WebSocket connection closed:', event.code, event.reason);
+            localStorage.setItem('wsConnected', 'false');
+            
+            // Try to reconnect after 3 seconds
+            setTimeout(() => {
+                if (authToken && mainDashboard.style.display !== 'none') {
+                    console.log('Attempting to reconnect WebSocket...');
+                    initWebSocket();
+                }
+            }, 3000);
+        };
+        
+        ws.onerror = function(error) {
+            console.error('WebSocket error:', error);
+        };
+        
+        return true;
+    } catch (error) {
+        console.error('Error creating WebSocket:', error);
+        return false;
+    }
+}
+// Enhanced polling with WebSocket status check
+setInterval(async () => {
+    if (!authToken || mainDashboard.style.display === 'none') return;
+    
+    try {
+        // Check WebSocket connection status
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            console.log('WebSocket not connected, using polling for updates');
+            ensureWebSocketConnection();
+        }
+        
+        // Poll for new notifications regardless of WebSocket status
+        const notifications = await apiRequest('/notifications');
+        const unreadCount = notifications.filter(n => !n.is_read).length;
+        
+        // Check if there are new notifications since last poll
+        if (unreadCount > notificationCount) {
+            console.log('New notifications found via polling:', unreadCount - notificationCount);
+            
+            // Get the most recent unread notification
+            const latestUnread = notifications.find(n => !n.is_read);
+            if (latestUnread) {
+                handleIncomingNotification({
+                    title: latestUnread.title,
+                    message: latestUnread.message,
+                    type: 'polling_fallback'
+                });
+            }
+            
+            notificationCount = unreadCount;
+            updateNotificationBadge();
+        }
+        
+        // For admin: also poll for employee updates
+        if (currentUser && currentUser.is_admin) {
+            const employees = await apiRequest('/employees');
+            // You might want to implement a more efficient check here
+        }
+    } catch (error) {
+        console.error('Polling error:', error);
+    }
+}, 10000); // Poll every 10 seconds
+// Handle incoming notification
+// Handle incoming notification
+function handleIncomingNotification(notification) {
+    // Play notification sound
+    if (notificationSound && typeof notificationSound.play === 'function') {
+        try {
+            // Use setTimeout to ensure it's not blocked by browser
+            setTimeout(() => {
+                notificationSound.play();
+            }, 100);
+        } catch (error) {
+            console.log('Notification sound error:', error);
+        }
+    }
+    
+    // Rest of the function remains the same...
+    // Show desktop notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+            new Notification(notification.title, {
+                body: notification.message,
+                icon: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#4e73df"><circle cx="12" cy="12" r="10"/><path fill="white" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>')
+            });
+        } catch (error) {
+            console.log('Desktop notification failed:', error);
+        }
+    }
+    
+    // Update notification badge
+    notificationCount++;
+    updateNotificationBadge();
+    
+    // Show toast notification
+    showToastNotification(notification);
+    
+    // Auto-refresh based on notification type
+    if (notification.type === 'task_assigned' || notification.task_assigned) {
+        // For employee: refresh activity timeline
+        if (!currentUser.is_admin) {
+            refreshActivityTimeline();
+        }
+        // For admin: refresh employee table
+        else {
+            refreshEmployeeTable();
+        }
+    } else if (notification.status_updated) {
+        // Refresh relevant data when status changes
+        if (currentUser.is_admin) {
+            refreshEmployeeTable();
+        }
+    }
+    
+    // Refresh employee activities if on employee dashboard
+    if (!currentUser.is_admin) {
+        refreshEmployeeActivities();
+    }
+}
+
+// Show toast notification
+function showToastNotification(notification) {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'toast show align-items-center text-bg-primary border-0 position-fixed';
+    toast.style.cssText = `
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+        min-width: 300px;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <h6 class="mb-1">${notification.title}</h6>
+                <p class="mb-0">${notification.message}</p>
+                <small>${new Date().toLocaleTimeString()}</small>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    // Add to document
+    document.body.appendChild(toast);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        toast.remove();
+    }, 5000);
+    
+    // Add close button functionality
+    toast.querySelector('.btn-close').addEventListener('click', () => {
+        toast.remove();
+    });
+}
+
+// Update notification badge
+function updateNotificationBadge() {
+    const notificationBadge = document.querySelector('#alertsDropdown .badge-counter');
+    if (notificationBadge) {
+        notificationBadge.textContent = notificationCount > 99 ? '99+' : notificationCount;
+        notificationBadge.style.display = notificationCount > 0 ? 'inline-block' : 'none';
+    }
+}
+
+// Load notifications from API
+async function loadNotifications() {
+    try {
+        const notifications = await apiRequest('/notifications');
+        notificationCount = notifications.filter(n => !n.is_read).length;
+        updateNotificationBadge();
+        return notifications;
+    } catch (error) {
+        console.error('Error loading notifications:', error);
+        return [];
+    }
+}
+
+// Refresh employee activities
+async function refreshEmployeeActivities() {
+    try {
+        const activities = await apiRequest('/employee/activity');
+        renderActivityTimeline(activities);
+    } catch (error) {
+        console.error('Error refreshing activities:', error);
+    }
+}
+
+// Add CSS for toast animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .notification-dropdown {
+        min-width: 300px;
+        max-width: 400px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .notification-item {
+        border-bottom: 1px solid #eee;
+        padding: 10px 0;
+    }
+    
+    .notification-item.unread {
+        background-color: #f8f9fa;
+        font-weight: 500;
+    }
+    
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+    
+    .notification-time {
+        font-size: 0.8em;
+        color: #6c757d;
+    }
+`;
+document.head.appendChild(style);
+// Handle status update notifications from other employees
+function ensureWebSocketConnection() {
+    // Check if WebSocket is connected
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+        console.log('WebSocket not connected, attempting to connect...');
+        
+        // Close existing connection if it exists
+        if (ws) {
+            try {
+                ws.close();
+            } catch (e) {
+                console.log('Error closing existing connection:', e);
+            }
+        }
+        
+        // Initialize WebSocket connection
+        initWebSocket();
+    }
+}
+async function handleStatusUpdateNotification(data) {
+    console.log('Status update received:', data);
+    
+    // Refresh employee table if admin is viewing dashboard
+    if (currentUser && currentUser.is_admin && document.getElementById('employee-table-container').style.display !== 'none') {
+        await refreshEmployeeTable();
+    }
+    
+    // Show notification
+    showToastNotification({
+        title: 'Status Updated',
+        message: `${data.employee_name} is now ${data.status}`,
+        timestamp: data.timestamp
+    });
+}
+
+// Refresh employee table
+async function refreshEmployeeTable() {
+    if (!currentUser || !currentUser.is_admin) return;
+    
+    try {
+        const employees = await apiRequest('/employees');
+        renderEmployeeTable(employees);
+        
+        // Update dashboard stats too
+        const stats = await apiRequest('/dashboard/stats');
+        renderDashboardCards(stats);
+        
+        console.log('Employee table refreshed automatically');
+    } catch (error) {
+        console.error('Error refreshing employee table:', error);
+    }
+}
+
+// Refresh activity timeline for employees
+async function refreshActivityTimeline() {
+    if (!currentUser || currentUser.is_admin) return;
+    
+    try {
+        const activities = await apiRequest('/employee/activity');
+        renderActivityTimeline(activities);
+        console.log('Activity timeline refreshed automatically');
+    } catch (error) {
+        console.error('Error refreshing activity timeline:', error);
+    }
+}
+// Fallback polling for updates (every 30 seconds)
+setInterval(async () => {
+    if (!authToken || mainDashboard.style.display === 'none') return;
+    
+    try {
+        // For admin: refresh employee table
+        if (currentUser && currentUser.is_admin) {
+            const employees = await apiRequest('/employees');
+            renderEmployeeTable(employees);
+        }
+        // For employee: check for new notifications
+        else {
+            const notifications = await apiRequest('/notifications');
+            const unreadCount = notifications.filter(n => !n.is_read).length;
+            if (unreadCount > notificationCount) {
+                notificationCount = unreadCount;
+                updateNotificationBadge();
+            }
+        }
+    } catch (error) {
+        console.error('Polling error:', error);
+    }
+}, 30000);
+// Add this to handle browser autoplay policies
+document.addEventListener('click', function() {
+    // This allows audio to play after user interaction
+    if (notificationSound && notificationSound instanceof HTMLAudioElement) {
+        // Try to play a silent sound to unlock audio
+        try {
+            notificationSound.volume = 0;
+            notificationSound.play().then(() => {
+                notificationSound.pause();
+                notificationSound.currentTime = 0;
+                notificationSound.volume = 0.5;
+            }).catch(e => {
+                console.log('Audio unlock attempt failed:', e);
+            });
+        } catch (error) {
+            console.log('Audio unlock error:', error);
+        }
+    }
+});
+
+// Also initialize sound after login
+// Update the initializeRealtime function:
+async function initializeRealtime() {
+    // Request notification permission FIRST
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+            console.log('Notification permission:', permission);
+        });
+    }
+    
+    // Initialize notification sound
+    initNotificationSound();
+    
+    // Initialize WebSocket connection
+    ensureWebSocketConnection(); // Changed from initWebSocket()
+    
+    // Load existing notifications
+    await loadNotifications();
+    
+    // Setup notification dropdown
+    setupNotificationDropdown();
+    
+    // Set up periodic connection check
+    setInterval(ensureWebSocketConnection, 15000); // Check every 15 seconds
+}
+    </script>
+</body>
+</html>
