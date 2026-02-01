@@ -177,7 +177,33 @@ function initializeDatabase() {
             console.log('Activity_log table ready');
         }
     });
+   function checkAndCreateDefaultUsers() {
+    console.log('Checking default users...');
     
+    db.query('SELECT * FROM employees WHERE email = "admin@office.com"', (err, results) => {
+        if (err) {
+            console.error('Error checking admin:', err);
+            return;
+        }
+        
+        if (results.length === 0) {
+            const hashedPassword = bcrypt.hashSync('admin123', 10);
+            db.query(
+                'INSERT INTO employees (name, email, password, position, department, is_admin) VALUES (?, ?, ?, ?, ?, ?)',
+                ['Admin User', 'admin@office.com', hashedPassword, 'Administrator', 'Management', 1],
+                (err) => {
+                    if (err) {
+                        console.error('Error creating admin:', err);
+                    } else {
+                        console.log('✅ Default admin user created');
+                    }
+                }
+            );
+        } else {
+            console.log('✅ Admin user already exists');
+        }
+    });
+} 
     // Add some sample data for testing
     
 }
