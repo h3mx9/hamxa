@@ -23,10 +23,6 @@ app.use(express.static(path.join(__dirname)));
 // MySQL Database Connection - Railway
 // MySQL Database Connection - Railway FIXED
 // Simple database connection for Railway
-const db = mysql.createConnection({
-    uri: 'mysql://root:qbSRMsQerOciGUsIucYXMneBxuYAbBqe@crossover.proxy.rlwy.net:20883/railway',
-    ssl: { rejectUnauthorized: false }
-});
 
 db.connect((err) => {
     if (err) {
