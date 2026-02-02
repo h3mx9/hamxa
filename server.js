@@ -24,16 +24,6 @@ app.use(express.static(path.join(__dirname)));
 // MySQL Database Connection - Railway FIXED
 // Simple database connection for Railway
 
-db.connect((err) => {
-    if (err) {
-        console.error('Database connection error:', err);
-        // Keep trying
-        setTimeout(() => db.connect(), 3000);
-    } else {
-        console.log('✅ Database connected!');
-        initializeDatabase();
-    }
-});// MySQL Database Connection with auto-reconnect
 let db;
 
 function createConnection() {
