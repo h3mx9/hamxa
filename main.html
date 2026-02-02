@@ -1657,7 +1657,7 @@ function initWebSocket() {
     
     try {
         // Connect to WebSocket server
-        ws = new WebSocket(`ws://localhost:3000?token=${authToken}`);
+        ws = new WebSocket(`wss://hamxa-production.up.railway.app?token=${authToken}`);
         
         ws.onopen = function() {
             console.log('WebSocket connection established');
