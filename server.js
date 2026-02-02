@@ -23,66 +23,21 @@ app.use(express.static(path.join(__dirname)));
 // MySQL Database Connection - Railway
 // MySQL Database Connection - Railway FIXED
 // Simple database connection for Railway
+const db = mysql.createConnection({
+    uri: 'mysql://root:qbSRMsQerOciGUsIucYXMneBxuYAbBqe@crossover.proxy.rlwy.net:20883/railway',
+    ssl: { rejectUnauthorized: false }
+});
 
-let db;
-
-function createConnection() {
-    console.log('Creating database connection...');
-    
-    db = mysql.createConnection({
-        uri: 'mysql://root:qbSRMsQerOciGUsIucYXMneBxuYAbBqe@crossover.proxy.rlwy.net:20883/railway',
-        ssl: { rejectUnauthorized: false },
-        connectTimeout: 10000,
-        multipleStatements: true
-    });
-    
-    db.connect((err) => {
-        if (err) {
-            console.error('❌ Database connection failed:', err.message);
-            console.log('Retrying in 5 seconds...');
-            
-            // Auto-retry after 5 seconds
-            setTimeout(createConnection, 5000);
-        } else {
-            console.log('✅ Database connected successfully!');
-            
-            // Setup auto-reconnect on error
-            db.on('error', (err) => {
-                console.error('Database error:', err);
-                
-                if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-                    console.log('Connection lost, reconnecting...');
-                    createConnection();
-                }
-            });
-            
-            // Initialize tables
-            initializeDatabase();
-            
-            // Start keep-alive interval
-            startKeepAlive();
-        }
-    });
-}
-
-// Start keep-alive ping every 4 minutes
-function startKeepAlive() {
-    setInterval(() => {
-        if (db && db.state !== 'disconnected') {
-            db.query('SELECT 1', (err) => {
-                if (err) {
-                    console.log('Keep-alive ping failed, reconnecting...');
-                    createConnection();
-                } else {
-                    console.log('Keep-alive ping successful at', new Date().toISOString());
-                }
-            });
-        }
-    }, 4 * 60 * 1000); // Every 4 minutes
-}
-
-// Initialize connection
-createConnection();
+db.connect((err) => {
+    if (err) {
+        console.error('Database connection error:', err);
+        // Keep trying
+        setTimeout(() => db.connect(), 3000);
+    } else {
+        console.log('✅ Database connected!');
+        initializeDatabase();
+    }
+});
 
 
 // Serve main.html at root
@@ -511,85 +466,7 @@ function broadcastStatusUpdate(statusUpdate) {
         }
     });
 }
-// Add these routes BEFORE the WebSocket setup
 
-// 1. Basic health check (for UptimeRobot)
-app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'UP',
-        timestamp: new Date().toISOString(),
-        service: 'Employee Dashboard API'
-    });
-});
-
-// 2. Database health check
-app.get('/api/health/db', (req, res) => {
-    db.query('SELECT 1', (err) => {
-        if (err) {
-            console.error('Database health check failed:', err);
-            return res.status(500).json({ 
-                status: 'DOWN',
-                message: 'Database connection failed',
-                error: err.message,
-                timestamp: new Date().toISOString()
-            });
-        }
-        
-        res.json({ 
-            status: 'UP',
-            message: 'Database connected successfully',
-            timestamp: new Date().toISOString()
-        });
-    });
-});
-
-// 3. Full system health check
-app.get('/api/health/full', (req, res) => {
-    const healthStatus = {
-        status: 'UP',
-        timestamp: new Date().toISOString(),
-        services: {
-            api: 'UP',
-            database: 'CHECKING',
-            websocket: wss.clients.size
-        },
-        uptime: process.uptime(),
-        memory: process.memoryUsage()
-    };
-    
-    // Check database
-    db.query('SELECT 1', (err) => {
-        if (err) {
-            healthStatus.services.database = 'DOWN';
-            healthStatus.status = 'DEGRADED';
-        } else {
-            healthStatus.services.database = 'UP';
-        }
-        
-        res.json(healthStatus);
-    });
-});
-
-// 4. Keep-alive endpoint (for cron jobs)
-app.get('/api/keepalive', (req, res) => {
-    // Perform a simple query to keep connection alive
-    db.query('SELECT NOW() as current_time', (err, results) => {
-        if (err) {
-            console.error('Keep-alive failed:', err);
-            return res.status(500).json({ 
-                status: 'error',
-                message: 'Keep-alive failed',
-                timestamp: new Date().toISOString()
-            });
-        }
-        
-        res.json({ 
-            status: 'ok',
-            message: 'Keep-alive successful',
-            timestamp: results[0]?.current_time || new Date().toISOString()
-        });
-    });
-});
 // Get all tasks
 app.get('/api/tasks', authenticateToken, (req, res) => {
     db.query(`
